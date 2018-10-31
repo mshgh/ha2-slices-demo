@@ -1,3 +1,18 @@
 body {
   font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
+
+.border {
+  border: black 1px solid;
+  padding: 0.2em;
+  margin-top: 0.5em;
+}
+
+.border h3 {
+  margin: 0.2em;
+  border-bottom: black 1px solid;
+}
+
+.border pre {
+  margin: 0.2em;
+}
