@@ -1,0 +1,13 @@
+{
+  "short_name": "Hyperapp",
+  "name": "Hypeapp v2 - slices (demo site)",
+  "description": "Hyperapp slices PoC",
+  "display": "fullscreen",
+  "scope": "/",
+  "start_url": "/",
+  "theme_color": "white",
+  "background_color": "white",
+  "orientation": "portrait",
+  "dir": "ltr",
+  "lang": "en"
+}
