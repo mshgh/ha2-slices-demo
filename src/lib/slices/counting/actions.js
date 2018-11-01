@@ -11,7 +11,13 @@ const add = amount => state => ({
   pending: false,
 });
 
+const pending = () => state => ({
+  ...state,
+  pending: true
+});
+
 export default {
   _init,
   add,
+  pending,
 }

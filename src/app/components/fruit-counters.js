@@ -1,8 +1,8 @@
 import { h } from '../../npm/hyperapp-v2'
 import { connect } from '../../lib/hyperapp/slices'
 import { Counter } from '../../lib/components'
-import { C1 } from './cx'
 import { countingToCounter } from '../mappings';
+import { C1 } from './cx'
 
 const FruitCounters = (props, children) => {
   const { apples, bananas } = props;
