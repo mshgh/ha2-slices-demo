@@ -18,7 +18,7 @@ const add = (path, slice, init) => {
   slices = map(_ => sliceInfo)(slices);
 };
 
-const connect = (mapToProps, component) => state => component(mapToProps(slices), state);
+const connect = (mapToProps, component) => (props, children) => component({ ...mapToProps(slices), ...props }, children);
 
 const init = init => ({ ...state, ...init });
 

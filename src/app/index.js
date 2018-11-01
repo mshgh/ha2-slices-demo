@@ -5,7 +5,7 @@ import ShowState from '../lib/show-state';
 
 import { add, init } from '../lib/hyperapp/slices'
 import { counting } from '../lib/slices'
-import { FruitCounters } from './components'
+import { FruitCounters, C2 } from './components'
 
 add('x.y.z.applesCounting', counting, { count: 2 });
 add('x.a.b.bananasCounting', counting, { count: 3 });
@@ -15,7 +15,7 @@ app({
   view: state =>
     h('div', {}, [
       h('h2', {}, state.title),
-      FruitCounters(),
+      FruitCounters({ v1: '_v1', v2: '_v2' }, C2),
       ShowState(state),
     ]),
   container: document.getElementById('app'),
