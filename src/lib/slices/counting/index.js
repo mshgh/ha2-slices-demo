@@ -1,7 +1,7 @@
 import actions from './actions'
-import operations from './effects'
+import api from './effects'
 
 export default {
   actions,
-  operations,
+  api,
 }

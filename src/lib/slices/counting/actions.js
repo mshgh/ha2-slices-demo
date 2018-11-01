@@ -1,20 +1,17 @@
-export default map => {
+const init = {
+  count: 1,
+  pending: false,
+};
 
-  const state = {
-    count: 1,
-    pending: false,
-  };
+const _init = state => ({ ...init, ...state });
 
-  const _init = init => ({ ...state, ...init });
+const add = amount => state => ({
+  ...state,
+  count: state.count + Math.floor(amount + 0.5),
+  pending: false,
+});
 
-  const add = amount => map(state => ({
-    ...state,
-    count: state.count + Math.floor(amount + 0.5),
-    pending: false,
-  }));
-
-  return {
-    _init,
-    add,
-  };
+export default {
+  _init,
+  add,
 }
