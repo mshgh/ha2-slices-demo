@@ -7,16 +7,16 @@ import { add, init } from '../lib/hyperapp/slices'
 import { counting } from '../lib/slices'
 import { FruitCounters } from './components'
 
-add('x.y.z.applesCounting', counting);
-add('x.a.b.bananasCounting', counting);
+add('x.y.z.applesCounting', counting, { count: 2 });
+add('x.a.b.bananasCounting', counting, { count: 3 });
 
 app({
-  init: init({title: 'Hyperapp v2 - slices'}),
+  init: init({ title: 'Hyperapp v2 - slices' }),
   view: state =>
     h('div', {}, [
       h('h2', {}, state.title),
       FruitCounters(),
       ShowState(state),
     ]),
-    container: document.getElementById('app'),
+  container: document.getElementById('app'),
 });

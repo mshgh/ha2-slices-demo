@@ -1,8 +1,9 @@
 import squirrel from '../../npm/squirrel'
 
 let slices = {};
+let state = {};
 
-const add = (path, slice) => {
+const add = (path, slice, init) => {
   const sliceInfo = {};
 
   const map = squirrel(path);
@@ -12,24 +13,15 @@ const add = (path, slice) => {
     const action = actions[key];
     actions[key] = (_, props, ev) => action(props, ev); // ditch the state ;)
   });
-  sliceInfo.init = _init;
   sliceInfo.operations = slice.operations(actions);
 
+  state = map(_ => sliceInfo.state = _init(init))(state);
   slices = map(_ => sliceInfo)(slices);
 };
 
 const connect = (mapToProps, component) => state => component(mapToProps(slices), state);
 
-const hydrate = (slices, init) => {
-  let state = init;
-  Object.keys(slices).forEach(key => {
-    const sliceInfo = slices[key];
-    state = sliceInfo.init && typeof sliceInfo.init === "function" ? sliceInfo.init(state) : hydrate(sliceInfo, state);
-  });
-  return state;
-};
-
-const init = state => hydrate(slices, state);
+const init = init => ({ ...state, ...init });
 
 export {
   add,
