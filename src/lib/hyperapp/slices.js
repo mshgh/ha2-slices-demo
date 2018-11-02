@@ -7,14 +7,16 @@ const add = (path, slice, init) => {
   const map = squirrel(path);
 
   const sliceInfo = {};
+  let _init = s => s;
   const actions = Object.keys(slice.actions).reduce((actions, key) => {
     const action = slice.actions[key];
-    if (key === "_init") state = map(_ => sliceInfo.state = action(init))(state);
+    if (key === "_init") _init = action;
     else actions[key] = (_, props, ev) => map(state => sliceInfo.state = action(props, ev)(state)); // ditch the state ;)
     return actions;
   }, {});
 
-  sliceInfo.api = slice.api(actions);
+  state = map(_ => sliceInfo.state = _init(init))(state);
+  sliceInfo.api = slice.api ? slice.api(actions) : actions;
   slices = map(_ => sliceInfo)(slices);
 };
 
