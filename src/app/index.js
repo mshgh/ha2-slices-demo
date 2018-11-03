@@ -7,9 +7,6 @@ import { add, init, connect } from '../lib/hyperapp/slices'
 import { counting } from '../lib/slices'
 import { FruitCounters, C2 } from './components'
 
-add('x.y.z.applesCounting', counting, { count: 2 });
-add('x.a.b.bananasCounting', counting, { count: 3 });
-
 // ----- How to bundle slice with view into 'module' -----
 import { Time } from '../npm/hyperapp-v2-fx'
 
@@ -25,14 +22,13 @@ const counterModule = {
       Time({ action: actions.inc, after: 2000 })
     ],
   }),
-  view: ({ label, state, api }) => {
-    return h('div', {class: 'border'}, [
+  view: ({ label, state, api }) =>
+    h('div', {class: 'border'}, [
       h('button', { onClick: api.inc }, 'Inc'), ' ',
       h('button', { onClick: api.incLater }, 'Inc later'), ' ',
       h('button', { onClick: [api.sub, 5] }, 'Sub 5'), ' ',
       h('span', {}, `${label}: ${state}`),
-    ]);
-  }
+    ]),
 }
 
 const module = (path, module, init) => {
@@ -44,6 +40,9 @@ const module = (path, module, init) => {
 const Temperature = module("temperature", counterModule, 27);
 const Humidity = module("huminidity", counterModule, 85);
 // ----- How to bundle slice with view into 'module' -----
+
+add('x.y.z.applesCounting', counting, { count: 2 });
+add('x.a.b.bananasCounting', counting, { count: 3 });
 
 app({
   init: init({ title: 'Hyperapp v2 - slices' }),
