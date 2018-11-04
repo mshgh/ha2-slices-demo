@@ -16,7 +16,7 @@ export default {
     h('div', { class: 'border' }, [
       h('button', { onClick: [add, step] }, 'Up'),
       h('span', {}, ` ${label}: Desired value ${desired} ${units} `),
-      //h('button', { onClick: [sub, step] }, 'Down'),
-      ' ', h('button', { onClick: addLater }, 'Inc later')
+      h('button', { onClick: [sub, step] }, 'Down'), ' ',
+      //h('button', { onClick: addLater }, 'Inc later')
     ]),
 }
