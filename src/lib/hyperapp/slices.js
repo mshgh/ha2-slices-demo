@@ -5,34 +5,33 @@ let slices = {};
 let views = {};
 
 const add = (path, slice, init) => {
-  const mapSlice = squirrel(path);
+  if (slice.actions) {
+    const mapSlice = squirrel(path);
 
-  const sliceInfo = {};
-  let _init = s => s;
-  const actions = Object.keys(slice.actions).reduce((actions, key) => {
-    const action = slice.actions[key];
-    if (key === "_init") _init = action;
-    else actions[key] = (_, props, ev) => mapSlice(state => sliceInfo.state = action(props, ev)(state)); // ditch the state ;)
-    return actions;
-  }, {});
+    const sliceInfo = {};
+    let _init = s => s;
+    const actions = Object.keys(slice.actions).reduce((actions, key) => {
+      const action = slice.actions[key];
+      if (key === "_init") _init = action;
+      else actions[key] = (_, props, ev) => mapSlice(state => sliceInfo.state = action(props, ev)(state)); // ditch the state ;)
+      return actions;
+    }, {});
 
-  state = mapSlice(_ => sliceInfo.state = _init(init))(state);
-  sliceInfo.api = slice.api ? slice.api(actions) : actions;
-  slices = mapSlice(_ => sliceInfo)(slices);
+    state = mapSlice(_ => sliceInfo.state = _init(init))(state);
+    sliceInfo.api = slice.api ? slice.api(actions) : actions;
+    slices = mapSlice(_ => sliceInfo)(slices);
+  }
 
   if (slice.view) {
     const pr = [...path].reverse();
-    const view = connect(slices => ({ ...pr.reduce((o, k) => o[k], slices) }), slice.view);
+    const mapToProps = slice.mapToProps || (slices => ({ ...pr.reduce((o, k) => o[k], slices) }));
+    const view = (props, children) => slice.view({ ...mapToProps(slices), ...props }, children);
 
     const [viewName, ...rest] = path;
     const mapView = squirrel([viewName.replace(/^./, c => c.toUpperCase()), ...rest]);
     views = mapView(_ => view)(views);
   }
 };
-
-const connect = (mapToProps, component) => (props, children) => component({ ...mapToProps(slices), ...props }, children);
-
-const init = init => ({ ...state, ...init });
 
 const buildSlice = (path, modules) => modules.forEach(module => {
   if (!Array.isArray(module)) state = squirrel(path)(_ => module)(state);
@@ -48,9 +47,4 @@ const modules = (...modules) => {
   return { init: state, views };
 };
 
-export {
-  modules,
-  add,
-  init,
-  connect,
-}
+export { modules }
