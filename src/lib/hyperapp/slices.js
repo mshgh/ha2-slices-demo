@@ -1,9 +1,13 @@
 import squirrel from '../../npm/squirrel'
+// TODO: better names
 
+// TODO: make these local variables
+// TODO: if reasonable get rid of state variable
 let state = {};
 let slices = {};
 let views = {};
 
+// TODO: simplier and cleaner implementation
 const add = (path, slice, init) => {
   if (slice.actions) {
     const mapSlice = squirrel(path);
@@ -12,7 +16,7 @@ const add = (path, slice, init) => {
     let _init = s => s;
     const actions = Object.keys(slice.actions).reduce((actions, key) => {
       const action = slice.actions[key];
-      if (key === "_init") _init = action;
+      if (key === "_init") _init = action; // TODO: make 'init' property of module instead of method
       else actions[key] = (_, props, ev) => mapSlice(state => sliceInfo.state = action(props, ev)(state)); // ditch the state ;)
       return actions;
     }, {});
@@ -38,7 +42,7 @@ const buildSlice = (path, modules) => modules.forEach(module => {
   else {
     const subPath = [...module[0].split('.').reverse(), ...path];
     if (Array.isArray(module[1])) buildSlice(subPath, module[1]);
-    else add(subPath, module[1], module[2]);
+    else add(subPath, module[1], module[2]); // TODO: make add part of buildSlice function
   }
 });
 
@@ -47,4 +51,5 @@ const modules = (...modules) => {
   return { init: state, views };
 };
 
+// TODO: export dafault (...modules) => ...
 export { modules }
