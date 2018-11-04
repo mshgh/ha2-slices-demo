@@ -2,17 +2,12 @@ import { h } from '../../npm/hyperapp-v2'
 import { connect } from '../../lib/hyperapp/slices'
 import { Counter } from '../../lib/components'
 import { countingToCounter } from '../mappings';
-import { C1 } from './cx'
 
-const FruitCounters = (props, children) => {
-  const { apples, bananas } = props;
-
-  return h('div', {}, [
-    children(props, C1),
+const FruitCounters = ({ apples, bananas }) =>
+  h('div', {}, [
     Counter({ label: 'Apples', delay: 1500, ...apples }),
     Counter({ label: 'Bananas', delay: 2000, ...bananas }),
   ])
-};
 
 const mapToProps = slices => ({
   apples: countingToCounter(slices.pantry.food.fruits.apples),

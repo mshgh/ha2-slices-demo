@@ -8,8 +8,10 @@ export default (props) => {
   } = props;
 
   return h('div', { class: 'border' }, [
-    h('button', { onClick: [add, boxSize] }, `Add box (${boxSize} pieces)`), ' ',
+    `${label}: `,
+    h('button', { onClick: [add, boxSize] }, `Add box (${boxSize} pieces)`),
+    ' ',
     h('button', { onClick: [addLater, { amount: 3, after: delay }] }, `Add box in ${delay / 1000.} secs`), ' ',
-    h('span', {}, `${label}: ${amount}${pending ? ' [working...]' : ''}`),
+    `available: ${amount}${pending ? ' [working...]' : ''}`,
   ])
 }
