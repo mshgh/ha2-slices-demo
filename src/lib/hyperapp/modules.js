@@ -1,17 +1,13 @@
 import squirrel from '../../npm/squirrel'
 // TODO: better names
 
-// TODO: make these local variables
-// TODO: if reasonable get rid of state variable
-let state = {};
 let slices = {};
-let views = {};
 
-const addModules = (path, modules) => modules.forEach(module => {
-  if (!Array.isArray(module)) state = squirrel(path)(_ => module)(state);
+const addModules = (modules, path, seed) => modules.reduce((res, module) => {
+  if (!Array.isArray(module)) res.init = squirrel(path)(_ => module)(res.init);
   else {
     const subPath = [...module[0].split('.').reverse(), ...path];
-    if (Array.isArray(module[1])) addModules(subPath, module[1]);
+    if (Array.isArray(module[1])) res = addModules(module[1], subPath, res);
     else {
       // TODO: simplier and cleaner implementation
       const slice = module[1];
@@ -28,7 +24,7 @@ const addModules = (path, modules) => modules.forEach(module => {
 
         sliceInfo.api = slice.api ? slice.api(actions) : actions;
         slices = mapSlice(_ => sliceInfo)(slices);
-        state = mapSlice(_ => sliceInfo.state = { ...(slice.init || {}), ...props })(state);
+        res.init = mapSlice(_ => sliceInfo.state = { ...(slice.init || {}), ...props })(res.init);
       }
 
       if (slice.view) {
@@ -38,13 +34,11 @@ const addModules = (path, modules) => modules.forEach(module => {
 
         const [viewName, ...rest] = subPath;
         const mapView = squirrel([viewName.replace(/^./, c => c.toUpperCase()), ...rest]);
-        views = mapView(_ => view)(views);
+        res.views = mapView(_ => view)(res.views);
       }
     }
   }
-});
+  return res;
+}, { ...seed });
 
-export default (...modules) => {
-  addModules([], modules);
-  return { init: state, views };
-};
+export default (...modules) => addModules(modules, [], { init: {}, views: {} });
