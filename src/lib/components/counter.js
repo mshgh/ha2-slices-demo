@@ -9,6 +9,6 @@ export default ({
     `${label}: `,
     h('button', { onClick: [add, boxSize] }, `Add box (${boxSize} pieces)`),
     ' ',
-    h('button', { onClick: [addLater, { amount: 3, after: delay }] }, `Add box in ${delay / 1000.} secs`), ' ',
+    h('button', { onClick: [addLater, { amount: boxSize, after: delay }] }, `Add box in ${delay / 1000.} secs`), ' ',
     `available: ${amount}${pending ? ' [working...]' : ''}`,
   ])

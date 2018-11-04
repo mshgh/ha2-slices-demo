@@ -8,22 +8,20 @@ let slices = {};
 let views = {};
 
 // TODO: simplier and cleaner implementation
-const add = (path, slice, init) => {
+const add = (path, slice, init = {}) => {
   if (slice.actions) {
     const mapSlice = squirrel(path);
 
     const sliceInfo = {};
-    let _init = s => s;
     const actions = Object.keys(slice.actions).reduce((actions, key) => {
       const action = slice.actions[key];
-      if (key === "_init") _init = action; // TODO: make 'init' property of module instead of method
-      else actions[key] = (_, props, ev) => mapSlice(state => sliceInfo.state = action(props, ev)(state)); // ditch the state ;)
+      actions[key] = (_, props, ev) => mapSlice(state => sliceInfo.state = action(props, ev)(state)); // ditch the state ;)
       return actions;
     }, {});
 
-    state = mapSlice(_ => sliceInfo.state = _init(init))(state);
     sliceInfo.api = slice.api ? slice.api(actions) : actions;
     slices = mapSlice(_ => sliceInfo)(slices);
+    state = mapSlice(_ => sliceInfo.state = {...(slice.init || {}), ...init})(state);
   }
 
   if (slice.view) {
