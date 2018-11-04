@@ -1,7 +1,7 @@
 import modules from '../lib/hyperapp/modules'
 import { controlPanel } from '../lib/modules'
 import { counting } from '../lib/slices'
-import { pantry } from './modules'
+import { pantry } from './views'
 
 const { init, views } = modules(
   { title: 'Hyperapp v2 - slices' }, // a way how to add extra state poperties (not a module)
