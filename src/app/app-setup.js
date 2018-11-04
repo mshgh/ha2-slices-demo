@@ -1,4 +1,4 @@
-import { modules } from '../lib/hyperapp/slices'
+import modules from '../lib/hyperapp/slices'
 import { controlPanel } from '../lib/modules'
 import { counting } from '../lib/slices'
 import { pantry } from './modules'

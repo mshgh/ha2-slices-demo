@@ -46,10 +46,7 @@ const buildSlice = (path, modules) => modules.forEach(module => {
   }
 });
 
-const modules = (...modules) => {
+export default (...modules) => {
   buildSlice([], modules);
   return { init: state, views };
 };
-
-// TODO: export dafault (...modules) => ...
-export { modules }
