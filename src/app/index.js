@@ -3,7 +3,7 @@ import '../assets/style.css'
 import { h, app } from '../npm/hyperapp-v2'
 import ShowState from '../lib/show-state';
 
-import { add, init, connect } from '../lib/hyperapp/slices'
+import { modules, add, connect } from '../lib/hyperapp/slices'
 import { counting } from '../lib/slices'
 import { FruitCounters, C2 } from './components'
 
@@ -23,7 +23,7 @@ const counterModule = {
     ],
   }),
   view: ({ label, state, api }) =>
-    h('div', {class: 'border'}, [
+    h('div', { class: 'border' }, [
       h('button', { onClick: api.inc }, 'Inc'), ' ',
       h('button', { onClick: api.incLater }, 'Inc later'), ' ',
       h('button', { onClick: [api.sub, 5] }, 'Sub 5'), ' ',
@@ -41,11 +41,23 @@ const Temperature = module("temperature", counterModule, 27);
 const Humidity = module("huminidity", counterModule, 85);
 // ----- How to bundle slice with view into 'module' -----
 
-add('x.y.z.applesCounting', counting, { count: 2 });
-add('x.a.b.bananasCounting', counting, { count: 3 });
+const { init } = modules(
+  { title: 'Hyperapp v2 - slices' }, // a way how to add extra state poperties (not a module)
+  ['pantry', [
+    { name: 'Food sweet food' }, // extra properties at any level
+    ['food.fruits', [
+      ['apples', counting, { amount: 2, boxSize: 10 }],
+      ['bananas', counting, { amount: 5, boxSize: 5 }],
+    ]],
+    ['controls', [
+      ['temperature', counterModule, { desired: 18, step: 0.1 }],
+      ['humidity', counterModule, { desired: 85, step: 5 }],
+    ]]
+  ]]
+);
 
 app({
-  init: init({ title: 'Hyperapp v2 - slices' }),
+  init,
   view: state =>
     h('div', {}, [
       h('h2', {}, state.title),

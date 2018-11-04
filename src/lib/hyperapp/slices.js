@@ -1,7 +1,8 @@
 import squirrel from '../../npm/squirrel'
 
-let slices = {};
 let state = {};
+let slices = {};
+let views = {};
 
 const add = (path, slice, init) => {
   const map = squirrel(path);
@@ -24,7 +25,22 @@ const connect = (mapToProps, component) => (props, children) => component({ ...m
 
 const init = init => ({ ...state, ...init });
 
+const buildSlice = (path, modules) => modules.forEach(module => {
+  if (!Array.isArray(module)) state = squirrel(path)(_ => module)(state);
+  else {
+    const subPath = [...module[0].split('.').reverse(), ...path];
+    if (Array.isArray(module[1])) buildSlice(subPath, module[1]);
+    else add(subPath, module[1], module[2]);
+  }
+});
+
+const modules = (...modules) => {
+  buildSlice([], modules);
+  return { init: state, views, a:'a', slices };
+};
+
 export {
+  modules,
   add,
   init,
   connect,

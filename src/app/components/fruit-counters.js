@@ -9,14 +9,14 @@ const FruitCounters = (props, children) => {
 
   return h('div', {}, [
     children(props, C1),
-    Counter({ label: 'Apples', ...apples }),
-    Counter({ label: 'Bananas', ...bananas }),
+    Counter({ label: 'Apples', delay: 1500, ...apples }),
+    Counter({ label: 'Bananas', delay: 2000, ...bananas }),
   ])
 };
 
 const mapToProps = slices => ({
-  apples: countingToCounter(slices.x.y.z.applesCounting),
-  bananas: countingToCounter(slices.x.a.b.bananasCounting),
+  apples: countingToCounter(slices.pantry.food.fruits.apples),
+  bananas: countingToCounter(slices.pantry.food.fruits.bananas),
 });
 
 export default connect(mapToProps, FruitCounters)

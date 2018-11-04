@@ -3,10 +3,10 @@ import toEffect from '../hyperapp/to-effect'
 
 export default {
   actions: {
-    _init: init => ({ count: 1, pending: false, ...init }),
+    _init: init => ({ amount: 1, pending: false, ...init }),
     add: amount => state => ({
       ...state,
-      count: state.count + Math.floor(amount + 0.5),
+      amount: state.amount + Math.floor(amount + 0.5),
       pending: false,
     }),
     pending: () => state => ({

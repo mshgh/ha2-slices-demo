@@ -57,9 +57,11 @@
   return map ? x => map(F(x)) : F
 }*/
 
-export default function squirrel (path, map) {
+export default function squirrel(path, map) {
   const [key, ...rest] = Array.isArray(path) ? path : path.split('.').reverse()
   if (rest.length) map = squirrel(rest, map)
-  const F = f => (x = {}) => ({...x, [key]: f(x[key])}) // mshgh: added default value for 'x' parameter
+  // mshgh: added default value for 'x' parameter
+  // mshgh: if key is undefined use the original object
+  const F = f => (x = {}) => typeof key === 'undefined' ? { ...x, ...f(x) } : { ...x, [key]: f(x[key]) }
   return map ? x => map(F(x)) : F
 }
