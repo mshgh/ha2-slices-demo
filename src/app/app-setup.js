@@ -1,20 +1,20 @@
-import modules from '../lib/hyperapp/slices'
+import modules from '../lib/hyperapp/modules'
 import { controlPanel } from '../lib/modules'
 import { counting } from '../lib/slices'
 import { pantry } from './modules'
 
 const { init, views } = modules(
   { title: 'Hyperapp v2 - slices' }, // a way how to add extra state poperties (not a module)
-  ['pantry', pantry], // connected view
-  ['pantry', [
-    { name: 'Food sweet food' }, // extra properties at any level
-    ['food.fruits', [
-      ['apples', counting, { amount: 2, boxSize: 10 }],
-      ['bananas', counting, { amount: 5, boxSize: 5 }],
+  ['pantry', pantry], // connected view with access to multiple slices
+  ['pantry', [ // namespace
+    { name: 'Food sweet food' }, // extra properties can be at any level
+    ['food.fruits', [ // namespace shortcut
+      ['apples', counting, { amount: 2, boxSize: 10 }], // business logic only module (actions and effects)
+      ['bananas', counting, { amount: 5, boxSize: 5 }], // ...another instance of the same module
     ]],
-    ['controls', [
-      ['temperature', controlPanel, { desired: 18 }],
-      ['humidity', controlPanel, { desired: 85 }],
+    ['controls', [ // namespace
+      ['temperature', controlPanel, { desired: 18 }], // self contained module (actions, effects, view)
+      ['humidity', controlPanel, { desired: 85 }], // ...and again another instance of the module
     ]]
   ]]
 );
