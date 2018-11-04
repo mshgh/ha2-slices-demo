@@ -5,20 +5,29 @@ let slices = {};
 let views = {};
 
 const add = (path, slice, init) => {
-  const map = squirrel(path);
+  const mapSlice = squirrel(path);
 
   const sliceInfo = {};
   let _init = s => s;
   const actions = Object.keys(slice.actions).reduce((actions, key) => {
     const action = slice.actions[key];
     if (key === "_init") _init = action;
-    else actions[key] = (_, props, ev) => map(state => sliceInfo.state = action(props, ev)(state)); // ditch the state ;)
+    else actions[key] = (_, props, ev) => mapSlice(state => sliceInfo.state = action(props, ev)(state)); // ditch the state ;)
     return actions;
   }, {});
 
-  state = map(_ => sliceInfo.state = _init(init))(state);
+  state = mapSlice(_ => sliceInfo.state = _init(init))(state);
   sliceInfo.api = slice.api ? slice.api(actions) : actions;
-  slices = map(_ => sliceInfo)(slices);
+  slices = mapSlice(_ => sliceInfo)(slices);
+
+  if (slice.view) {
+    const pr = [...path].reverse();
+    const view = connect(slices => ({ ...pr.reduce((o, k) => o[k], slices) }), slice.view);
+
+    const [viewName, ...rest] = path;
+    const mapView = squirrel([viewName.replace(/^./, c => c.toUpperCase()), ...rest]);
+    views = mapView(_ => view)(views);
+  }
 };
 
 const connect = (mapToProps, component) => (props, children) => component({ ...mapToProps(slices), ...props }, children);
@@ -36,7 +45,7 @@ const buildSlice = (path, modules) => modules.forEach(module => {
 
 const modules = (...modules) => {
   buildSlice([], modules);
-  return { init: state, views, a:'a', slices };
+  return { init: state, views };
 };
 
 export {
