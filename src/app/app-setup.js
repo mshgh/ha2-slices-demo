@@ -3,7 +3,7 @@ import { controlPanel, counting } from '../lib/modules'
 import { pantry } from './views'
 
 const { init, views } = modules(
-  { title: 'Hyperapp v2 - slices' }, // a way how to add extra state poperties (not a module)
+  { title: 'Hyperapp v2 - modules' }, // a way how to add extra state poperties (not a module)
   ['pantry', pantry, { name2: 'optional props' }], // connected view with access to multiple slices
   ['pantry', [ // namespace
     { name: 'Food sweet food' }, // extra properties can be at any level
