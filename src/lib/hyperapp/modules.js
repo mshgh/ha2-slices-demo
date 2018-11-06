@@ -13,12 +13,12 @@ const addModules = (modules, path = [], seed = {}) =>
     if (!Array.isArray(moduleInfo)) init = squirrel(path)(state => ({ ...state, ...moduleInfo }))(init);
     else if (Array.isArray(moduleInfo[1])) init = addModules(moduleInfo[1], [...path, ...moduleInfo[0].split('.')], init);
     else {
-      const [subPath, module, pars] = moduleInfo;
+      const [subPath, module, props] = moduleInfo;
       const modulePath = [...path, ...subPath.split('.')];
       const { map, mapView } = maps([...modulePath].reverse());
 
       const slice = {};
-      if (module.init || pars) init = map(state => slice.state = { ...state, ...(module.init || {}), ...(pars || {}) })(init);
+      if (module.init || props) init = map(state => slice.state = { ...state, ...(module.init || {}), ...(props || {}) })(init);
 
       if (module.actions) {
         slice.api = {};
