@@ -1,5 +1,5 @@
 import { h } from '../../npm/hyperapp-v2'
-import { views } from '../app-setup'
+import { views } from '../../lib/hyperapp/modules'
 import { Counter } from '../../lib/components'
 
 export default {
@@ -7,7 +7,7 @@ export default {
     apples: slices.pantry.food.fruits.apples,
     bananas: slices.pantry.food.fruits.bananas,
   }),
-  view: ({ name, apples, bananas }) =>
+  view: ({ name, apples, bananas }) => 
     h('div', { class: 'border' }, [
       h('h2', {}, `Pantry - ${name}`),
       h('div', { class: 'border' }, [
