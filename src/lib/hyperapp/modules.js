@@ -19,12 +19,22 @@ const addModules = (modules, path, seed) => modules.reduce((acc, moduleInfo) => 
     if (module.init || init) acc.init = map(state => slice.state = { ...state, ...(module.init || {}), ...(init || {}) })(acc.init);
 
     if (module.actions) {
-      const actions = Object.keys(module.actions).reduce((actions, key) => {
+      slice.api = {};
+      const actions = Object.keys(module.actions).reduce((acc, key) => {
         const action = module.actions[key];
-        actions[key] = (_, props, ev) => map(state => slice.state = action(props, ev)(state)); // ditch the state ;)
-        return actions;
+        acc[key] = (_, props, ev) => map(state => slice.state = action(props, ev)(state)); // ditch the state ;)
+        if (key.charAt() !== '_') slice.api[key] = acc[key]; // don't publish "private" actions
+        return acc;
       }, {});
-      slice.api = module.api ? module.api(actions) : actions;
+
+      if (module.effects) {
+        const effects = module.effects(actions);
+        Object.keys(effects).forEach(key => {
+          const effect = effects[key];
+          slice.api[key] = (state, props) => [state, effect(props)];
+        });
+      }
+
       slices = map(_ => slice)(slices);
     }
 

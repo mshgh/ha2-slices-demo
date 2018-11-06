@@ -9,16 +9,12 @@ export default {
       amount: state.amount + Math.floor(amount + 0.5),
       pending: false,
     }),
-    pending: () => state => ({
+    _pending: () => state => ({ // underscore means "private" => this action won't be part of slice.api, but is available for effects
       ...state,
       pending: true
     })
   },
-  api: actions => ({
-    add: actions.add,
-    addLater: (state, { amount, after }) => [
-      state,
-      BatchFx(toEffect(actions.pending), Time({ action: [actions.add, amount], after }))
-    ]
+  effects: actions => ({
+    addLater: ({ amount, after }) => BatchFx(toEffect(actions._pending), Time({ action: [actions.add, amount], after }))
   })
 }
