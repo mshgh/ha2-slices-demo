@@ -11,7 +11,7 @@ const maps = path => ({
 
 const bindActions = (slice, map, actions = {}) => Object.keys(actions).reduce((acc, key) => {
   const action = actions[key];
-  acc[key] = (_, props, ev) => map(state => slice.state = action(props, ev)(state)); // ditch the state ;)
+  acc[key] = (state, props, ev) => map(s => slice.state = action(s, props, ev))(state);
   return acc;
 }, {});
 
@@ -39,7 +39,7 @@ const addModules = (modules, path = [], seed = {}) =>
               const effect = getEffect(props);
               if (!Array.isArray(effect)) return [state, effect];
               const action = effect[0];
-              return [(Array.isArray(action) ? action[0](state, action[1]) : action(state))(state), effect[1]];
+              return [Array.isArray(action) ? action[0](state, action[1]) : action(state), effect[1]];
             }
           });
         }

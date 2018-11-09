@@ -3,8 +3,8 @@ import { Time } from '../../npm/hyperapp-v2-fx'
 
 export default {
   actions: {
-    add: step => state => ({ ...state, desired: Math.round((state.desired + step) * 100) / 100 }),
-    sub: step => state => ({ ...state, desired: Math.round((state.desired - step) * 100) / 100 }),
+    add: (state, step) => ({ ...state, desired: Math.round((state.desired + step) * 100) / 100 }),
+    sub: (state, step) => ({ ...state, desired: Math.round((state.desired - step) * 100) / 100 }),
   },
   effects: actions => ({
     addLater: step => Time({ action: [actions.add, step], after: 2000 }),
