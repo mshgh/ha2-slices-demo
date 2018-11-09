@@ -1,3 +1,4 @@
+import { h, app as hyperapp } from '../../npm/hyperapp-v2'
 import squirrel from '../../npm/squirrel'
 
 let slices = {};
@@ -55,9 +56,9 @@ const addModules = (modules, path = [], seed = {}) =>
     return init;
   }, { ...seed });
 
-const modules = (...modules) => addModules(modules);
+const app = ({ modules, ...props }) => {
+  if (modules) props.init = addModules(modules);
+  hyperapp(props);
+};
 
-export {
-  modules,
-  views,
-}
+export { h, app, views }
