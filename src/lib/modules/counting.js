@@ -17,6 +17,8 @@ export default {
     }),
   },
   effects: actions => ({
-    addLater: ({ amount, after }) => BatchFx(toEffect(actions.pending), Time({ action: [actions.add, amount], after }))
+    addLater: ({ amount, after }) => [actions.pending, Time({ action: [actions.add, amount], after })],
+    addLaterPoorWay: ({ amount, after }) => BatchFx(toEffect(actions.pending), Time({ action: [actions.add, amount], after })),
+    addLaterWithParams: ({ amount, after }) => [[actions.pending, true], Time({ action: [actions.add, amount], after })],
   })
 }

@@ -33,8 +33,13 @@ const addModules = (modules, path = [], seed = {}) =>
         if (module.effects) {
           const effects = module.effects({ ...slice.api, ...privateActions });
           Object.keys(effects).forEach(key => {
-            const effect = effects[key];
-            slice.api[key] = (state, props) => [state, effect(props)];
+            const getEffect = effects[key];
+            slice.api[key] = (state, props) => {
+              const effect = getEffect(props);
+              if (!Array.isArray(effect)) return [state, effect];
+              const action = effect[0];
+              return [(Array.isArray(action) ? action[0](state, action[1]) : action(state))(state), effect[1]];
+            }
           });
         }
 
