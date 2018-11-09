@@ -8,6 +8,12 @@ const maps = path => ({
   mapView: squirrel([path[0].replace(/^./, c => c.toUpperCase()), ...path.slice(1)]),
 });
 
+const bindActions = (slice, map, actions = {}) => Object.keys(actions).reduce((acc, key) => {
+  const action = actions[key];
+  acc[key] = (_, props, ev) => map(state => slice.state = action(props, ev)(state)); // ditch the state ;)
+  return acc;
+}, {});
+
 const addModules = (modules, path = [], seed = {}) =>
   modules.reduce((init, moduleInfo) => {
     if (!Array.isArray(moduleInfo)) init = squirrel(path)(state => ({ ...state, ...moduleInfo }))(init);
@@ -21,16 +27,11 @@ const addModules = (modules, path = [], seed = {}) =>
       if (module.init || props) init = map(state => slice.state = { ...state, ...(module.init || {}), ...(props || {}) })(init);
 
       if (module.actions) {
-        slice.api = {};
-        const actions = Object.keys(module.actions).reduce((acc, key) => {
-          const action = module.actions[key];
-          acc[key] = (_, props, ev) => map(state => slice.state = action(props, ev)(state)); // ditch the state ;)
-          if (key.charAt() !== '_') slice.api[key] = acc[key]; // don't publish "private" actions
-          return acc;
-        }, {});
+        slice.api = bindActions(slice, map, module.actions);
+        const privateActions = bindActions(slice, map, module.privateActions);
 
         if (module.effects) {
-          const effects = module.effects(actions);
+          const effects = module.effects({ ...slice.api, ...privateActions });
           Object.keys(effects).forEach(key => {
             const effect = effects[key];
             slice.api[key] = (state, props) => [state, effect(props)];
