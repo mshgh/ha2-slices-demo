@@ -18,10 +18,10 @@ const bind = (slice, map, ops = {}) => Object.keys(ops).reduce((acc, key) => {
   return acc;
 }, {});
 
-const addApi = (slice, map, { actions, private: pActions, effects: getEffects }) => {
-  slice.api = bind(slice, map, actions);
+const addApi = (slice, map, { actions, private: _actions, effects: getEffects }) => {
+  if (actions) slice.api = bind(slice, map, actions);
   if (getEffects) {
-    const effects = getEffects({ ...slice.api, ...bind(slice, map, pActions) });
+    const effects = getEffects({ ...(slice.api || {}), ...bind(slice, map, _actions) });
     Object.keys(effects).forEach(key => {
       const effect = effects[key];
       slice.api[key] = !Array.isArray(effect) ? (state, props) => [state, effect(props)]
