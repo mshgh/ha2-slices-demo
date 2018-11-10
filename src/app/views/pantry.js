@@ -1,24 +1,29 @@
-import { h } from '../../npm/hyperapp-v2'
-import { views } from '../../lib/hyperapp/modules'
+import { h, views } from '../../lib/hyperapp/modules'
 import { Counter } from '../../lib/components'
 
 export default {
-  mapToProps: slices => ({
-    apples: slices.pantry.food.fruits.apples,
-    bananas: slices.pantry.food.fruits.bananas,
+  mapToProps: slices => ({ // default mapToProps in case View doesn't provide it's own mapping
+    food: slices.pantry.food,
+    controls: slices.pantry.controls,
   }),
-  view: ({ name, apples, bananas }) => 
-    h('div', { class: 'border' }, [
-      h('h2', {}, `Pantry - ${name}`),
-      h('div', { class: 'border' }, [
-        h('h3', {}, 'Fruits'),
-        Counter({ label: 'Apples', delay: 1500, ...apples }),
-        Counter({ label: 'Bananas', delay: 2000, ...bananas }),
-      ]),
-      h('h3', {}, 'Control panels'),
-      h('div', { class: 'border' }, [
-        views.pantry.controls.Temperature({ label: 'Temperature', units: '°C', step: 0.1 }),
-        views.pantry.controls.Humidity({ label: 'Humidity', units: '%', step: 5 }),
-      ]),
-    ]),
+  views: {
+    Fruits: [
+      slices => ({ apples: slices.pantry.food.fruits.apples, bananas: slices.pantry.food.fruits.bananas }),
+      ({ apples, bananas }) =>
+        h('div', { class: 'border' }, [
+          h('h3', {}, 'Fruits'),
+          Counter({ label: 'Apples', delay: 1500, ...apples }),
+          Counter({ label: 'Bananas', delay: 2000, ...bananas }),
+        ]),
+    ],
+    ControlPanels: [
+      _ => { }, // explicitly remove access to slices
+      _ =>
+        h('div', { class: 'border' }, [
+          h('h3', {}, 'Control panels'),
+          views.pantry.controls.temperature.ControlPanel({ label: 'Temperature', units: '°C', step: 0.1 }),
+          views.pantry.controls.humidity.ControlPanel({ label: 'Humidity', units: '%', step: 5 }),
+        ]),
+    ],
+  }
 }

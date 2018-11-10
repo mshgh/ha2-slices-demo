@@ -1,8 +1,9 @@
 import '../assets/style.css'
 
-import { h, app, views } from '../lib/hyperapp/modules'
+import { h, app } from '../lib/hyperapp/modules'
 import { controlPanel, counting } from '../lib/modules'
 import { pantry } from './views'
+import { Pantry } from './components'
 import ShowState from '../lib/show-state'
 
 app({
@@ -24,7 +25,7 @@ app({
   view: state =>
     h('div', {}, [
       h('h2', {}, state.title),
-      views.Pantry({ name: state.pantry.name }),
+      Pantry({ name: state.pantry.name }),
       ShowState(state),
     ]),
   container: document.getElementById('app')
