@@ -3,17 +3,17 @@ import toEffect from '../hyperapp/to-effect'
 
 export default {
   init: { amount: 1, pending: false },
-  privateActions: { // these actions won't be part of slice.api, but are available for effects
-    pending: state => ({
-      ...state,
-      pending: true
-    }),
-  },
   actions: {
     add: (state, amount) => ({
       ...state,
       amount: state.amount + Math.floor(amount + 0.5),
       pending: false,
+    }),
+  },
+  private: { // these actions won't be part of slice.api, but are available for effects
+    pending: state => ({
+      ...state,
+      pending: true
     }),
   },
   effects: actions => ({
