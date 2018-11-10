@@ -20,8 +20,8 @@ const addApi = (slice, map, { actions, private: _actions, effects: getEffects })
       const effect = effects[key];
       slice.api[key] = !Array.isArray(effect) ? (state, props) => [state, effect(props)]
         : !Array.isArray(effect[0]) ? (state, props) => [effect[0](state, props), effect[1](props)]
-          : typeof effect[0][1] !== 'function' ? (state, props) => [effect[0][0](state, effect[0][1]), effect[1](props)]
-            : (state, props) => [effect[0][0](state, effect[0][1](props)), effect[1](props)];
+        : typeof effect[0][1] !== 'function' ? (state, props) => [effect[0][0](state, effect[0][1]), effect[1](props)]
+        : (state, props) => [effect[0][0](state, effect[0][1](props)), effect[1](props)];
     });
   }
   slices = map(_ => slice)(slices);
@@ -36,26 +36,23 @@ const addViews = (moduleMap, moduleMapToProps, moduleViews = {}) => {
   });
 }
 
-const addModules = (modules, path = [], seed = {}) =>
-  modules.reduce((init, moduleInfo) => {
-    if (!Array.isArray(moduleInfo)) init = squirrel(path)(state => ({ ...state, ...moduleInfo }))(init);
-    else if (Array.isArray(moduleInfo[1])) init = addModules(moduleInfo[1], [...path, ...moduleInfo[0].split('.')], init);
+const addModules = (modules = {}, path = [], seed = { init: {} }) =>
+  modules.reduce((acc, moduleInfo) => {
+    if (!Array.isArray(moduleInfo)) acc.init = squirrel(path)(state => ({ ...state, ...moduleInfo }))(acc.init);
+    else if (Array.isArray(moduleInfo[1])) return addModules(moduleInfo[1], [...path, ...moduleInfo[0].split('.')], acc);
     else {
       const module = moduleInfo[1];
       const modulePath = [...path, ...moduleInfo[0].split('.')];
       const map = squirrel([...modulePath].reverse());
 
       const slice = {};
-      init = addInit(slice, map, module, moduleInfo[2], init);
+      acc.init = addInit(slice, map, module, moduleInfo[2], acc.init);
       addApi(slice, map, module);
       addViews(map, module.mapToProps || (slices => ({ ...modulePath.reduce((o, k) => o[k], slices) })), module.views);
     }
-    return init;
-  }, { ...seed });
+    return acc;
+  }, seed);
 
-const app = ({ modules, ...props }) => {
-  if (modules) props.init = addModules(modules);
-  hyperapp(props);
-};
+const app = ({ modules, ...props }) => hyperapp({ ...props, ...addModules(modules) });
 
 export { h, app, views }
