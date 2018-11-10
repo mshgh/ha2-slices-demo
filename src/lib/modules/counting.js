@@ -17,8 +17,11 @@ export default {
     }),
   },
   effects: actions => ({
-    addLater: ({ amount, after }) => [actions.pending, Time({ action: [actions.add, amount], after })],
-    addLaterPoorWay: ({ amount, after }) => BatchFx(toEffect(actions.pending), Time({ action: [actions.add, amount], after })),
-    addLaterWithParams: ({ amount, after }) => [[actions.pending, true], Time({ action: [actions.add, amount], after })],
+    addLater: [actions.pending, ({ amount, after }) => Time({ action: [actions.add, amount], after })],
+    addLaterWithProps: [[actions.add, ({ amount }) => amount], ({ amount, after }) => Time({ action: [actions.add, amount], after })],
+    addLaterWithConstant: [[actions.pending, true], ({ amount, after }) => Time({ action: [actions.add, amount], after })],
+    addLaterWithConstantAlternative: [[actions.pending, _ => true], ({ amount, after }) => Time({ action: [actions.add, amount], after })],
+    addLaterUpdateStateBeffoerEffectPoorWay: ({ amount, after }) => BatchFx(toEffect(actions.pending), Time({ action: [actions.add, amount], after })),
+    addLaterPossibleButOverkill: [(state, { amount }) => actions.add(state, amount), ({ amount, after }) => Time({ action: [actions.add, amount], after })],
   })
 }

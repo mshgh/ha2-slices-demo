@@ -23,13 +23,11 @@ const addApi = (slice, map, { actions, private: pActions, effects: getEffects })
   if (getEffects) {
     const effects = getEffects({ ...slice.api, ...bind(slice, map, pActions) });
     Object.keys(effects).forEach(key => {
-      const getEffect = effects[key];
-      slice.api[key] = (state, props) => {
-        const effect = getEffect(props);
-        if (!Array.isArray(effect)) return [state, effect];
-        const action = effect[0];
-        return [Array.isArray(action) ? action[0](state, action[1]) : action(state), effect[1]];
-      }
+      const effect = effects[key];
+      slice.api[key] = !Array.isArray(effect) ? (state, props) => [state, effect(props)]
+        : !Array.isArray(effect[0]) ? (state, props) => [effect[0](state, props), effect[1](props)]
+        : typeof effect[0][1] !== 'function' ? (state, props) => [effect[0][0](state, effect[0][1]), effect[1](props)]
+        : (state, props) => [effect[0][0](state, effect[0][1](props)), effect[1](props)];
     });
   }
   slices = map(_ => slice)(slices);
