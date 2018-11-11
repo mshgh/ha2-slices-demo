@@ -14,6 +14,7 @@ app({
       ['food.fruits', [ // namespace shortcut
         ['apples', module.counting, { amount: 2, boxSize: 10 }], // business logic only module (actions and effects)
         ['bananas', module.counting, { amount: 5, boxSize: 5 }], // ...another instance of the same module
+        {baz: 'bar'},
       ]],
       ['controls', [ // namespace
         ['temperature', module.controlPanel, { desired: 18 }], // self contained module (actions, effects, view)
@@ -21,7 +22,7 @@ app({
       ]],
     ]]
   ],
-  init: { foo: 'bar' },
+  init2: { foo: 'bar' },
   view: state =>
     h('div', {}, [
       h('h2', {}, state.title),
