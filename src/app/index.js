@@ -21,6 +21,7 @@ app({
       ]],
     ]]
   ],
+  init: { foo: 'bar' },
   view: state =>
     h('div', {}, [
       h('h2', {}, state.title),

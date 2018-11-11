@@ -3,8 +3,8 @@ import squirrel from '../../npm/squirrel'
 
 let slices = {}, views = {};
 
-const addInit = (slice, map, { init }, props, state) => !init && !props ? state
-  : map(s => slice.state = { ...s, ...(init || {}), ...(props || {}) })(state);
+const addInit = (slice, map, { init }, props, acc) => acc.init = !init && !props ? acc.init
+  : map(s => slice.state = { ...s, ...(init || {}), ...(props || {}) })(acc.init);
 
 const bind = (slice, map, ops = {}) => Object.keys(ops).reduce((acc, key) => {
   const op = ops[key];
@@ -36,23 +36,23 @@ const addViews = (moduleMap, moduleMapToProps, moduleViews = {}) => {
   });
 }
 
-const addModules = (modules = {}, path = [], seed = { init: {} }) =>
+const addModules = (modules = [], seed, path = []) =>
   modules.reduce((acc, moduleInfo) => {
     if (!Array.isArray(moduleInfo)) acc.init = squirrel(path)(state => ({ ...state, ...moduleInfo }))(acc.init);
-    else if (Array.isArray(moduleInfo[1])) return addModules(moduleInfo[1], [...path, ...moduleInfo[0].split('.')], acc);
+    else if (Array.isArray(moduleInfo[1])) return addModules(moduleInfo[1], acc, [...path, ...moduleInfo[0].split('.')]);
     else {
       const module = moduleInfo[1];
       const modulePath = [...path, ...moduleInfo[0].split('.')];
       const map = squirrel([...modulePath].reverse());
 
       const slice = {};
-      acc.init = addInit(slice, map, module, moduleInfo[2], acc.init);
+      addInit(slice, map, module, moduleInfo[2], acc);
       addApi(slice, map, module);
       addViews(map, module.mapToProps || (slices => ({ ...modulePath.reduce((o, k) => o[k], slices) })), module.views);
     }
     return acc;
   }, seed);
 
-const app = ({ modules, ...props }) => hyperapp({ ...props, ...addModules(modules) });
+const app = ({ init, modules, ...props }) => hyperapp({ ...props, ...addModules(modules, { init }) });
 
 export { h, app, views }
