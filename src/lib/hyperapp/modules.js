@@ -44,11 +44,9 @@ function addViews(map, mapToProps, _views = {}) {
   });
 }
 
-function addSubs(mapToProps, subs, seed = []) {
-  return subs.reduce((acc, item) => {
-    acc.push(isF(item) ? [mapToProps, item] : item);
-    return acc;
-  }, seed);
+const reduceSubs = (mapToProps) => function addSub(acc = [], item) {
+  acc.push(isF(item) ? [mapToProps, item] : item);
+  return acc;
 }
 
 function addModules(modules = [], basePath = [], seed = {}) {
@@ -63,7 +61,7 @@ function addModules(modules = [], basePath = [], seed = {}) {
     addApi(slice, map, module);
     const mapToProps = module.mapToProps || (slices => ({ ...path.reduce((o, k) => o[k], slices) }));
     if (module.views) addViews(map, mapToProps, module.views);
-    if (module.subscriptions) acc.subs = addSubs(mapToProps, toA(module.subscriptions), acc.subs);
+    if (module.subscriptions) acc.subs = toA(module.subscriptions).reduce(reduceSubs(mapToProps), acc.subs);
     return acc;
   }, seed);
 }
