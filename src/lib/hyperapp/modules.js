@@ -44,11 +44,6 @@ function addViews(map, mapToProps, _views = {}) {
   });
 }
 
-const reduceSubs = (mapToProps) => function addSub(acc = [], item) {
-  acc.push(isF(item) ? [mapToProps, item] : item);
-  return acc;
-}
-
 function addModules(modules = [], basePath = [], seed = {}) {
   return modules.reduce((acc, item) => {
     if (!isA(item)) return { ...acc, init: squirrel(rA(basePath))(state => ({ ...state, ...item }))(acc.init) };
@@ -64,17 +59,30 @@ function addModules(modules = [], basePath = [], seed = {}) {
     if (module.subscriptions) acc.subs = toA(module.subscriptions).reduce(reduceSubs(mapToProps), acc.subs);
     return acc;
   }, seed);
+
+  function reduceSubs(mapToProps) {
+    return function addSub(acc = [], item) {
+      acc.push(isF(item) ? [mapToProps, item] : item);
+      return acc;
+    }
+  }
 }
 
-function combineSubs(subs = [], acc) {
-  return subs.reduce((acc, sub) => acc.concat(sub[1](sub[0](slices))), acc);
-}
-
-function app({ modules, init, subscriptions: subs, ...props }) {
+function app({ modules, init, subscriptions, ...props }) {
   const res = {}, acc = addModules(modules);
   if (init || acc.init) res.init = { ...init, ...acc.init };
-  if (subs || acc.subs) res.subscriptions = state => combineSubs(acc.subs, subs ? subs(state) : []);
+  if (subscriptions || acc.subs) res.subscriptions = combineSubs(subscriptions, acc.subs);
   return hyperapp({ ...props, ...res });
+
+  function combineSubs(subs, modulesSubs = []) {
+    return function subscriptions(state) {
+      return modulesSubs.reduce(reduceSubs, subs ? subs(state) : []);
+    }
+
+    function reduceSubs(acc, sub) {
+      return acc.concat(sub[1](sub[0](slices)));
+    }
+  }
 }
 
 export { h, app, views }
