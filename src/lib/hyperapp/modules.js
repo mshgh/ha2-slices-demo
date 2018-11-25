@@ -1,3 +1,4 @@
+// TODO: replace forEach with map?
 import { h, app as hyperapp } from '../../npm/hyperapp-v2'
 import squirrel from '../../npm/squirrel'
 
@@ -9,30 +10,34 @@ const toA = i => isA(i) ? i : [i];
 const rA = a => [...a].reverse();
 
 function addInit(slice, init, props) {
-  return s => slice.state = { ...s, ...(init || {}), ...(props || {}) };
-}
-
-function bind(slice, map, ops = {}) {
-  return Object.keys(ops).reduce((acc, key) => {
-    const op = ops[key];
-    acc[key] = (state, props, ev) => map(s => slice.state = op(s, props, ev))(state);
-    return acc;
-  }, {});
+  return state => slice.state = { ...state, ...(init || {}), ...(props || {}) };
 }
 
 function addApi(slice, map, { actions, private: _actions, effects: getEffects }) {
-  if (actions) slice.api = bind(slice, map, actions);
+  if (actions) slice.api = bindActions(actions, bind(slice, map));
   if (getEffects) {
-    const effects = getEffects({ ...(slice.api || {}), ...bind(slice, map, _actions) });
+    const effects = getEffects({ ...(slice.api || {}), ...bindActions(_actions, bind(slice, map)) });
     Object.keys(effects).forEach(key => {
       const effect = effects[key];
       slice.api[key] = !isA(effect) ? (state, props) => [state, effect(props)]
         : !isA(effect[0]) ? (state, props) => [effect[0](state, props), effect[1](props)]
-          : !isF(effect[0][1]) ? (state, props) => [effect[0][0](state, effect[0][1]), effect[1](props)]
-            : (state, props) => [effect[0][0](state, effect[0][1](props)), effect[1](props)];
+        : !isF(effect[0][1]) ? (state, props) => [effect[0][0](state, effect[0][1]), effect[1](props)]
+        : (state, props) => [effect[0][0](state, effect[0][1](props)), effect[1](props)];
     });
   }
   if (slice.api) slices = map(_ => slice)(slices); // TODO: mergse slices?
+
+  function bindActions(actions = {}, fn, seed = {}) {
+    return Object.keys(actions).reduce((action, key) => fn(action, key, actions), seed);
+  }
+
+  function bind(slice, map) {
+    return function bindbindCallback(acc, key, ops) {
+      const op = ops[key]
+      acc[key] = (state, props, ev) => map(s => slice.state = op(s, props, ev))(state);
+      return acc;
+    }
+  }
 };
 
 function addViews(map, mapToProps, _views = {}) {
