@@ -14,9 +14,9 @@ function addInit(slice, init, props) {
 }
 
 function addApi(slice, map, { actions, private: _actions, effects: getEffects }) {
-  if (actions) slice.api = bindActions(actions, bind(slice, map));
+  if (actions) slice.api = reduceActions(actions, bind(slice, map));
   if (getEffects) {
-    const effects = getEffects({ ...(slice.api || {}), ...bindActions(_actions, bind(slice, map)) });
+    const effects = getEffects({ ...(slice.api || {}), ...reduceActions(_actions, bind(slice, map)) });
     Object.keys(effects).forEach(key => {
       const effect = effects[key];
       slice.api[key] = !isA(effect) ? (state, props) => [state, effect(props)]
@@ -27,7 +27,7 @@ function addApi(slice, map, { actions, private: _actions, effects: getEffects })
   }
   if (slice.api) slices = map(_ => slice)(slices); // TODO: mergse slices?
 
-  function bindActions(actions = {}, fn, seed = {}) {
+  function reduceActions(actions = {}, fn, seed = {}) {
     return Object.keys(actions).reduce((action, key) => fn(action, key, actions), seed);
   }
 
@@ -40,15 +40,6 @@ function addApi(slice, map, { actions, private: _actions, effects: getEffects })
   }
 };
 
-function addViews(map, mapToProps, _views = {}) {
-  Object.keys(_views).forEach(key => {
-    const view = _views[key];
-    const fn = isA(view) ? (props, children) => view[1]({ ...view[0](slices), ...props }, children)
-      : (props, children) => view({ ...mapToProps(slices), ...props }, children);
-    views = squirrel([key], map)(_ => fn)(views) // TODO: mergse views?
-  });
-}
-
 function addModules(modules = [], basePath = [], seed = {}) {
   return modules.reduce((acc, item) => {
     if (!isA(item)) return { ...acc, init: squirrel(rA(basePath))(state => ({ ...state, ...item }))(acc.init) };
@@ -57,37 +48,39 @@ function addModules(modules = [], basePath = [], seed = {}) {
     const slice = {}, [name, module, props] = item;
     const path = [...basePath, ...name.split('.')];
     const map = squirrel(rA(path));
+    const mapToProps = module.mapToProps || (slices => ({ ...path.reduce((o, k) => o[k], slices) }));
+
     if (module.init || props) acc.init = map(addInit(slice, module.init, props))(acc.init);
     addApi(slice, map, module);
-    const mapToProps = module.mapToProps || (slices => ({ ...path.reduce((o, k) => o[k], slices) }));
-    if (module.views) addViews(map, mapToProps, module.views);
-    if (module.subscriptions) acc.subs = toA(module.subscriptions).reduce(reduceSubs(mapToProps), acc.subs);
+    if (module.views) Object.keys(module.views).forEach(key => {
+      const view = module.views[key];
+      const fn = isA(view) ? (props, children) => view[1]({ ...view[0](slices), ...props }, children)
+        : (props, children) => view({ ...mapToProps(slices), ...props }, children);
+      views = squirrel([key], map)(_ => fn)(views) // TODO: mergse views?
+    });
+    if (module.subscriptions) acc.subs = toA(module.subscriptions).reduce(reduceSubs, acc.subs);
     return acc;
-  }, seed);
 
-  function reduceSubs(mapToProps) {
-    return function addSub(acc = [], item) {
+    function reduceSubs(acc = [], item) {
       acc.push(isF(item) ? [mapToProps, item] : item);
       return acc;
     }
-  }
+  }, seed);
 }
 
-function app({ modules, init, subscriptions, ...props }) {
+function app({ modules, init, subscriptions: subs, ...props }) {
   const res = {}, acc = addModules(modules);
   if (init || acc.init) res.init = { ...init, ...acc.init };
-  if (subscriptions || acc.subs) res.subscriptions = combineSubs(subscriptions, acc.subs);
-  return hyperapp({ ...props, ...res });
+  if (subs || acc.subs) {
+    const modulesSubs = acc.subs || [];
 
-  function combineSubs(subs, modulesSubs = []) {
-    return function subscriptions(state) {
-      return modulesSubs.reduce(reduceSubs, subs ? subs(state) : []);
-    }
-
-    function reduceSubs(acc, sub) {
-      return acc.concat(sub[1](sub[0](slices)));
+    res.subscriptions = function subscriptions(state) {
+      return modulesSubs.reduce(function reduceSubs(acc, sub) {
+        return acc.concat(sub[1](sub[0](slices)));
+      }, subs ? subs(state) : []);
     }
   }
+  return hyperapp({ ...props, ...res });
 }
 
 export { h, app, views }
