@@ -10,8 +10,7 @@ const isA = a => Array.isArray(a);
 const toA = i => isA(i) ? i : [i];
 const rA = a => [...a].reverse();
 
-const addInit = (slice, map, { init }, props, acc) => !init && !props ? acc.init // TODO: move this check to caller method
-  : map(s => slice.state = { ...s, ...(init || {}), ...(props || {}) })(acc.init);
+const addInit = (slice, init, props) => s => slice.state = { ...s, ...(init || {}), ...(props || {}) };
 
 const bind = (slice, map, ops = {}) => Object.keys(ops).reduce((acc, key) => {
   const op = ops[key];
@@ -27,11 +26,11 @@ const addApi = (slice, map, { actions, private: _actions, effects: getEffects })
       const effect = effects[key];
       slice.api[key] = !isA(effect) ? (state, props) => [state, effect(props)]
         : !isA(effect[0]) ? (state, props) => [effect[0](state, props), effect[1](props)]
-        : !isF(effect[0][1]) ? (state, props) => [effect[0][0](state, effect[0][1]), effect[1](props)]
-        : (state, props) => [effect[0][0](state, effect[0][1](props)), effect[1](props)];
+          : !isF(effect[0][1]) ? (state, props) => [effect[0][0](state, effect[0][1]), effect[1](props)]
+            : (state, props) => [effect[0][0](state, effect[0][1](props)), effect[1](props)];
     });
   }
-  slices = map(_ => slice)(slices); // TODO: mergse slices?
+  if (slice.api) slices = map(_ => slice)(slices); // TODO: mergse slices?
 };
 
 const addViews = (map, mapToProps, _views = {}) => Object.keys(_views).forEach(key => {
@@ -53,7 +52,7 @@ const addModules = (modules = [], basePath = [], seed = {}) => modules.reduce((a
   const slice = {}, [name, module, props] = item;
   const path = [...basePath, ...name.split('.')];
   const map = squirrel(rA(path));
-  acc.init = addInit(slice, map, module, props, acc);
+  if (module.init || props) acc.init = map(addInit(slice, module.init, props))(acc.init);
   addApi(slice, map, module);
   const mapToProps = module.mapToProps || (slices => ({ ...path.reduce((o, k) => o[k], slices) }));
   if (module.views) addViews(map, mapToProps, module.views);
