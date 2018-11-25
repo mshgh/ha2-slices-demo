@@ -9,10 +9,6 @@ const isA = a => Array.isArray(a);
 const toA = i => isA(i) ? i : [i];
 const rA = a => [...a].reverse();
 
-function addInit(slice, init, props) {
-  return state => slice.state = { ...state, ...(init || {}), ...(props || {}) };
-}
-
 function addApi(slice, map, { actions, private: _actions, effects: getEffects }) {
   if (actions) slice.api = reduceActions(actions, bind(slice, map));
   if (getEffects) {
@@ -40,21 +36,35 @@ function addApi(slice, map, { actions, private: _actions, effects: getEffects })
   }
 };
 
-function addModules(modules = [], seed = { basePath: [] }) {
-  return modules.reduce(({ basePath, init, subs }, item) => {
+function app({ modules = [], init, subscriptions: subs, ...props }) {
+  const res = {}, acc = modules.reduce(reduceModules, {});
 
-    if (!isA(item)) return { basePath, init: squirrel(rA(basePath))(state => ({ ...state, ...item }))(init), subs };
-    if (isA(item[1])) {
-      const subModules = addModules(item[1], { basePath: [...basePath, ...item[0].split('.')], init, subs });
-      return { basePath, init: subModules.init, subs: subModules.subs };
+  if (init || acc.init) res.init = { ...init, ...acc.init };
+  if (subs || acc.subs) {
+    const modulesSubs = acc.subs || [];
+    res.subscriptions = function subscriptions(state) {
+      return modulesSubs.reduce(
+        function reduceSubs(acc, sub) { return acc.concat(sub[1](sub[0](slices))); },
+        subs ? subs(state) : []);
     }
+  }
+
+  return hyperapp({ ...props, ...res });
+
+  function reduceModules({ basePath = [], init, subs }, item) {
+    if (!isA(item)) return { basePath, init: squirrel(rA(basePath))(state => ({ ...state, ...item }))(init), subs };
 
     const slice = {}, [name, module, props] = item;
     const path = [...basePath, ...name.split('.')];
-    const map = squirrel(rA(path));
-    const mapToProps = module.mapToProps || (slices => ({ ...path.reduce((o, k) => o[k], slices) }));
+    if (isA(module)) return { ...module.reduce(reduceModules, { basePath: path, init, subs }), basePath };
 
-    if (module.init || props) init = map(addInit(slice, module.init, props))(init);
+    const mapToProps = isF(module.mapToProps) ? module.mapToProps : (slices => ({ ...path.reduce((o, k) => o[k], slices) }));
+    const map = squirrel(rA(path));
+
+    if (module.init || props) init = map(function updateInit(state) {
+      return slice.state = { ...state, ...module.init, ...props };
+    })(init);
+
     addApi(slice, map, module);
     if (module.views) Object.keys(module.views).forEach(key => {
       const view = module.views[key];
@@ -72,24 +82,7 @@ function addModules(modules = [], seed = { basePath: [] }) {
     }
 
     return { basePath, init, subs };
-  }, seed);
-}
-
-function app({ modules, init, subscriptions: subs, ...props }) {
-  const res = {}, acc = addModules(modules);
-
-  if (init || acc.init) res.init = { ...init, ...acc.init };
-  if (subs || acc.subs) {
-    const modulesSubs = acc.subs || [];
-
-    res.subscriptions = function subscriptions(state) {
-      return modulesSubs.reduce(function reduceSubs(acc, sub) {
-        return acc.concat(sub[1](sub[0](slices)));
-      }, subs ? subs(state) : []);
-    }
   }
-
-  return hyperapp({ ...props, ...res });
 }
 
 export { h, app, views }
