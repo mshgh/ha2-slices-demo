@@ -40,10 +40,10 @@ function app({ modules = [], init, subscriptions: subs, ...props }) {
       const effects = getEffects({ ...slice.api, ...bind(_actions) });
       Object.keys(effects).forEach(key => {
         const effect = effects[key];
-        slice.api[key] = !isA(effect) ? (state, props) => [state, effect(props)]
-          : !isA(effect[0]) ? (state, props) => [effect[0](state, props), effect[1](props)]
-          : !isF(effect[0][1]) ? (state, props) => [effect[0][0](state, effect[0][1]), effect[1](props)]
-          : (state, props) => [effect[0][0](state, effect[0][1](props)), effect[1](props)];
+        if (!isA(effect)) slice.api[key] = (state, props) => [state, effect(props)];
+        else if (!isA(effect[0])) slice.api[key] = (state, props) => [effect[0](state, props), effect[1](props)];
+        else if (!isF(effect[0][1])) slice.api[key] = (state, props) => [effect[0][0](state, effect[0][1]), effect[1](props)];
+        else slice.api[key] = (state, props) => [effect[0][0](state, effect[0][1](props)), effect[1](props)];
       });
     }
     if (slice.api) slices = map(_ => slice)(slices); // TODO: mergse slices?
